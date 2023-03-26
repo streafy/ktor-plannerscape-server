@@ -43,7 +43,7 @@ class DAOFacadeImpl : DAOFacade {
                 it[fieldId] = command.fieldId.toString()
                 it[fieldName] = command.fieldName
                 it[fieldType] = command.fieldType
-                it[fieldValue] = command.fieldValue.toString()
+                it[fieldValue] = command.fieldValue
             }
         }
     }

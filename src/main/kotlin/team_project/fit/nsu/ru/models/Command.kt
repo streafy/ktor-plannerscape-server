@@ -11,7 +11,7 @@ data class Command(
     val fieldId: UUID? = null,
     val fieldName: String? = null,
     val fieldType: String? = null,
-    val fieldValue: Any? = null
+    val fieldValue: String? = null
 )
 
 enum class CommandType {
