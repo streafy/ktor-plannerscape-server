@@ -4,8 +4,8 @@ import io.ktor.server.application.*
 import kotlinx.coroutines.runBlocking
 import team_project.fit.nsu.ru.dao.DatabaseFactory
 import team_project.fit.nsu.ru.dao.dao
-import team_project.fit.nsu.ru.plugins.*
-import java.util.*
+import team_project.fit.nsu.ru.plugins.configureRouting
+import team_project.fit.nsu.ru.plugins.configureSerialization
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)

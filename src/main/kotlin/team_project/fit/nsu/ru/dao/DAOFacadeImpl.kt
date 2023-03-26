@@ -4,11 +4,16 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import team_project.fit.nsu.ru.dao.DatabaseFactory.dbQuery
-import team_project.fit.nsu.ru.models.*
+import team_project.fit.nsu.ru.models.Command
+import team_project.fit.nsu.ru.models.CommandType
+import team_project.fit.nsu.ru.models.Commands
 import java.util.*
 
 class DAOFacadeImpl : DAOFacade {
+    private var commandCount = transaction { Commands.selectAll().count().toInt() }
+
     private fun resultRowToCommand(row: ResultRow): Command =
         Command(
             id = row[Commands.id],
@@ -25,31 +30,36 @@ class DAOFacadeImpl : DAOFacade {
         Commands.selectAll().map(::resultRowToCommand)
     }
 
-    override suspend fun addNewCommand(command: Command): Command? = dbQuery {
-        val insertStatement = Commands.insert {
-            it[id] = command.id
-            it[commandType] = command.commandType.name
-            it[objectId] = command.objectId.toString()
-            it[objectType] = command.objectType
-            it[fieldId] = command.fieldId.toString()
-            it[fieldName] = command.fieldName
-            it[fieldType] = command.fieldType
-            it[fieldValue] = command.fieldValue.toString()
+    override suspend fun addNewCommand(command: Command) {
+        if (command.id != -1) {
+            return
         }
-        insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToCommand)
+        dbQuery {
+            Commands.insert {
+                it[id] = ++commandCount
+                it[commandType] = command.commandType.name
+                it[objectId] = command.objectId.toString()
+                it[objectType] = command.objectType
+                it[fieldId] = command.fieldId.toString()
+                it[fieldName] = command.fieldName
+                it[fieldType] = command.fieldType
+                it[fieldValue] = command.fieldValue.toString()
+            }
+        }
     }
 }
 
 val dao: DAOFacade = DAOFacadeImpl().apply {
     runBlocking {
         if (allCommands().isEmpty()) {
+            println("EMPTY [${allCommands().size}] -> LOADING MOCK DATA")
             val taskObjectId = UUID.randomUUID()
             val taskTextFieldId = UUID.randomUUID()
             val taskStatusFieldId = UUID.randomUUID()
 
             addNewCommand(
                 Command(
-                    id = 1,
+                    id = -1,
                     commandType = CommandType.CREATE_OBJECT_COMMAND,
                     objectId = taskObjectId,
                     objectType = "task"
@@ -58,7 +68,7 @@ val dao: DAOFacade = DAOFacadeImpl().apply {
 
             addNewCommand(
                 Command(
-                    id = 2,
+                    id = -1,
                     commandType = CommandType.ADD_FIELD_COMMAND,
                     objectId = taskObjectId,
                     fieldId = taskTextFieldId,
@@ -69,7 +79,7 @@ val dao: DAOFacade = DAOFacadeImpl().apply {
 
             addNewCommand(
                 Command(
-                    id = 3,
+                    id = -1,
                     commandType = CommandType.SET_FIELD_VALUE,
                     fieldId = taskTextFieldId,
                     fieldValue = "task from server"
@@ -78,7 +88,7 @@ val dao: DAOFacade = DAOFacadeImpl().apply {
 
             addNewCommand(
                 Command(
-                    id = 4,
+                    id = -1,
                     commandType = CommandType.ADD_FIELD_COMMAND,
                     objectId = taskObjectId,
                     fieldId = taskStatusFieldId,
@@ -89,13 +99,14 @@ val dao: DAOFacade = DAOFacadeImpl().apply {
 
             addNewCommand(
                 Command(
-                    id = 5,
+                    id = -1,
                     commandType = CommandType.SET_FIELD_VALUE,
                     fieldId = taskStatusFieldId,
                     fieldValue = "ACTIVE"
                 )
             )
+        } else {
+            println("NOT EMPTY [${allCommands().size}]")
         }
-        println("NOT EMPTY [${allCommands().size}]")
     }
 }
