@@ -13,6 +13,11 @@ fun Route.commandRouting() {
         get {
             call.respond(dao.allCommands())
         }
+        get("/{id}") {
+            val id: Int? = call.parameters["id"]?.toInt()
+            println("$id <-- id here")
+            call.respond(dao.neededCommands(id ?: 0))
+        }
         post {
             val commands = call.receive<List<Command>>()
             commands.forEach { dao.addNewCommand(it) }

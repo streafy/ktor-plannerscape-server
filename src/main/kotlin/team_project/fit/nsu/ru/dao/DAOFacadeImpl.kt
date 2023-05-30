@@ -3,6 +3,7 @@ package team_project.fit.nsu.ru.dao
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import team_project.fit.nsu.ru.dao.DatabaseFactory.dbQuery
@@ -30,6 +31,11 @@ class DAOFacadeImpl : DAOFacade {
         Commands.selectAll().map(::resultRowToCommand)
     }
 
+    override suspend fun neededCommands(id: Int): List<Command> = dbQuery {
+        Commands.select { Commands.id greater id }.map(::resultRowToCommand)
+    }
+
+
     override suspend fun addNewCommand(command: Command) {
         if (command.id != -1) {
             return
@@ -52,59 +58,7 @@ class DAOFacadeImpl : DAOFacade {
 val dao: DAOFacade = DAOFacadeImpl().apply {
     runBlocking {
         if (allCommands().isEmpty()) {
-            println("EMPTY [${allCommands().size}] -> LOADING MOCK DATA")
-            val taskObjectId = UUID.randomUUID()
-            val taskTextFieldId = UUID.randomUUID()
-            val taskStatusFieldId = UUID.randomUUID()
-
-            addNewCommand(
-                Command(
-                    id = -1,
-                    commandType = CommandType.CREATE_OBJECT_COMMAND,
-                    objectId = taskObjectId,
-                    objectType = "task"
-                )
-            )
-
-            addNewCommand(
-                Command(
-                    id = -1,
-                    commandType = CommandType.ADD_FIELD_COMMAND,
-                    objectId = taskObjectId,
-                    fieldId = taskTextFieldId,
-                    fieldName = "taskText",
-                    fieldType = "String"
-                )
-            )
-
-            addNewCommand(
-                Command(
-                    id = -1,
-                    commandType = CommandType.SET_FIELD_VALUE,
-                    fieldId = taskTextFieldId,
-                    fieldValue = "task from server"
-                )
-            )
-
-            addNewCommand(
-                Command(
-                    id = -1,
-                    commandType = CommandType.ADD_FIELD_COMMAND,
-                    objectId = taskObjectId,
-                    fieldId = taskStatusFieldId,
-                    fieldName = "taskStatus",
-                    fieldType = "String"
-                )
-            )
-
-            addNewCommand(
-                Command(
-                    id = -1,
-                    commandType = CommandType.SET_FIELD_VALUE,
-                    fieldId = taskStatusFieldId,
-                    fieldValue = "ACTIVE"
-                )
-            )
+            println("EMPTY")
         } else {
             println("NOT EMPTY [${allCommands().size}]")
         }

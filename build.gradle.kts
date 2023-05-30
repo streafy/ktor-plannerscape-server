@@ -37,3 +37,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("com.h2database:h2:$h2_version")
 }
+
+ktor {
+    fatJar {
+        archiveFileName.set("server.jar")
+    }
+}

@@ -6,5 +6,7 @@ interface DAOFacade {
 
     suspend fun allCommands(): List<Command>
 
+    suspend fun neededCommands(id: Int): List<Command>
+
     suspend fun addNewCommand(command: Command)
 }
